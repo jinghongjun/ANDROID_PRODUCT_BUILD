@@ -1,0 +1,17 @@
+# git
+#.gitignore
+
+# sh
+.robot_config.sh
+.product
+.project.sh
+.robot_task_queue
+
+# mac
+.DS_Store
+._.DS_Store
+
+# robot
+product/code/
+release/
+tools/development

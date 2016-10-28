@@ -256,7 +256,7 @@ function create_project_config(){
         project_config_value+="\"";
 
         # project android type
-        check_android_project="find $GLOBAL_CURRENT_PROJECT_CODE_DIR -name build.gradle | xargs grep -rn 'com.android.application'";
+        check_android_project="find ./ -name build.gradle | xargs grep -rn 'com.android.application'";
         result=`eval $check_android_project`;
         if [ -n "$result" ]
         then
@@ -264,7 +264,7 @@ function create_project_config(){
             project_config_value+=$GLOBAL_SUPPORT_PROJECT_ANDROID_GRADLE_NORMAL;
 
             # checkstyle, findbug, pmd
-            check_android_project_cfp_feature="find $GLOBAL_CURRENT_PROJECT_CODE_DIR -name build.gradle | xargs grep -Ern 'checkstyle|findbug|pmd'";
+            check_android_project_cfp_feature="find ./ -name build.gradle | xargs grep -Ern 'checkstyle|findbug|pmd'";
             result=`eval $check_android_project_cfp_feature`;
             if [ -n "$result" ]
             then
@@ -274,7 +274,7 @@ function create_project_config(){
             fi
 
             # flavors
-            check_android_project_flavors="find $GLOBAL_CURRENT_PROJECT_CODE_DIR -name build.gradle | xargs grep -rn 'productFlavors'";
+            check_android_project_flavors="find ./ -name build.gradle | xargs grep -rn 'productFlavors'";
             result=`eval $check_android_project_flavors`;
             if [ -n "$result" ]
             then
@@ -329,6 +329,26 @@ function init_current_project_config(){
     GLOBAL_CURRENT_PROJECT_CODE_DIR=${GLOBAL_CURRENT_PRODUCT_CODE_DIR}/${GLOBAL_CURRENT_PROJECT_NAME};
     robot_logger_i "product code dir: $GLOBAL_CURRENT_PROJECT_CODE_DIR";
 
+    # project release
+    GLOBAL_CURRENT_PROJECT_RELEASE_DIR=${GLOBAL_CURRENT_PRODUCT_RELEASE_DIR}/${GLOBAL_CURRENT_PROJECT_NAME};
+    create_dir $GLOBAL_CURRENT_PROJECT_RELEASE_DIR;
+    robot_logger_i "current project release dir: ${GLOBAL_CURRENT_PROJECT_RELEASE_DIR}";
+
+    # project release:daily-build
+    GLOBAL_CURRENT_PROJECT_RELEASE_DAILY_BUILD_DIR=${GLOBAL_CURRENT_PROJECT_RELEASE_DIR}/${GLOBAL_PRODUCT_RELEASE_DAILY_BUILD_DIR};
+    create_dir $GLOBAL_CURRENT_PROJECT_RELEASE_DAILY_BUILD_DIR;
+    robot_logger_i "current project daily-build dir: $GLOBAL_CURRENT_PROJECT_RELEASE_DAILY_BUILD_DIR";
+
+    # project release:package
+    GLOBAL_CURRENT_PROJECT_RELEASE_PACEAGE_DIR=${GLOBAL_CURRENT_PROJECT_RELEASE_DIR}/${GLOBAL_PRODUCT_RELEASE_PACEKAGE_DIR};
+    create_dir $GLOBAL_CURRENT_PROJECT_RELEASE_PACEAGE_DIR;
+    robot_logger_i "current project package dir: $GLOBAL_CURRENT_PROJECT_RELEASE_PACEAGE_DIR";
+
+    # project release: QA
+    GLOBAL_CURRENT_PROJECT_RELEASE_QA_DIR=${GLOBAL_CURRENT_PROJECT_RELEASE_DIR}/${GLOBAL_PRODUCT_RELEASE_QA_DIR};
+    create_dir $GLOBAL_CURRENT_PROJECT_RELEASE_QA_DIR;
+    robot_logger_i "current project QA dir: $GLOBAL_CURRENT_PROJECT_RELEASE_QA_DIR";
+
     if [ -d "$GLOBAL_CURRENT_PROJECT_CODE_DIR" ]
     then
 
@@ -358,7 +378,10 @@ function init_current_project_config(){
             project_config=$(get_project_config $GLOBAL_CURRENT_PROJECT_NAME);
             if [ -z "$project_config"  ]
             then
+
+                eval "cd $GLOBAL_CURRENT_PROJECT_CODE_DIR";
                 create_project_config "$GLOBAL_CURRENT_PROJECT_NAME" "$GLOBAL_CURRENT_PROJECT_CODE_URL"  "$GLOBAL_PROJECT_CONFIG";
+
             fi
 
         fi
@@ -368,25 +391,6 @@ function init_current_project_config(){
 
     cd $CURRENT_BASE_DIR;
 
-    # project release
-    GLOBAL_CURRENT_PROJECT_RELEASE_DIR=${GLOBAL_CURRENT_PRODUCT_RELEASE_DIR}/${GLOBAL_CURRENT_PROJECT_NAME};
-    create_dir $GLOBAL_CURRENT_PROJECT_RELEASE_DIR;
-    robot_logger_i "current project release dir: ${GLOBAL_CURRENT_PROJECT_RELEASE_DIR}";
-
-    # project release:daily-build
-    GLOBAL_CURRENT_PROJECT_RELEASE_DAILY_BUILD_DIR=${GLOBAL_CURRENT_PROJECT_RELEASE_DIR}/${GLOBAL_PRODUCT_RELEASE_DAILY_BUILD_DIR};
-    create_dir $GLOBAL_CURRENT_PROJECT_RELEASE_DAILY_BUILD_DIR;
-    robot_logger_i "current project daily-build dir: $GLOBAL_CURRENT_PROJECT_RELEASE_DAILY_BUILD_DIR";
-
-    # project release:package
-    GLOBAL_CURRENT_PROJECT_RELEASE_PACEAGE_DIR=${GLOBAL_CURRENT_PROJECT_RELEASE_DIR}/${GLOBAL_PRODUCT_RELEASE_PACEKAGE_DIR};
-    create_dir $GLOBAL_CURRENT_PROJECT_RELEASE_PACEAGE_DIR;
-    robot_logger_i "current project package dir: $GLOBAL_CURRENT_PROJECT_RELEASE_PACEAGE_DIR";
-
-    # project release: QA
-    GLOBAL_CURRENT_PROJECT_RELEASE_QA_DIR=${GLOBAL_CURRENT_PROJECT_RELEASE_DIR}/${GLOBAL_PRODUCT_RELEASE_QA_DIR};
-    create_dir $GLOBAL_CURRENT_PROJECT_RELEASE_QA_DIR;
-    robot_logger_i "current project QA dir: $GLOBAL_CURRENT_PROJECT_RELEASE_QA_DIR";
 
 }
 
