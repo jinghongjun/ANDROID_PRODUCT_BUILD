@@ -422,6 +422,57 @@ function init_project_config_in_product_build_task(){
     done
 }
 
+function build_project(){
+
+
+    for (( i=0;i<${#GLOBAL_CURRENT_BUILD_TYPE[@]};i++ ))
+    do
+
+        for (( j=0;j<${#GLOBAL_CURRENT_PROJECT_BUILD_TYPE[@]};j++ ))
+        do
+
+            if [ "${GLOBAL_CURRENT_BUILD_TYPE[$i]}" = "${GLOBAL_CURRENT_PROJECT_BUILD_TYPE[$j]}" ]
+            then
+                ="android:gradle:flavors";
+                ="android:gradle:normal";
+                ="android:gradle:check";
+
+                if [  "${GLOBAL_CURRENT_BUILD_TYPE[$i]}" = "$GLOBAL_SUPPORT_PROJECT_ANDROID_GRADLE_NORMAL" ]
+                then
+
+                    # android:gradle:normal
+                    robot_logger_i "android:gradle:normal";
+
+                elif [ "${GLOBAL_CURRENT_BUILD_TYPE[$i]}" = "$GLOBAL_SUPPORT_PROJECT_ANDROID_GRADLE_FLAVORS" ]
+                then
+
+                    # android:gradle:flavors
+                    robot_logger_i "android:gradle:flavors";
+
+                elif [ "${GLOBAL_CURRENT_BUILD_TYPE[$i]}" = "$GLOBAL_SUPPORT_PROJECT_ANDROID_GRADLE_CHECK" ]
+                then
+
+                    # android:gradle:check
+                    robot_logger_i "android:gradle:check";
+
+                else
+
+                    continue;
+
+                fi
+
+
+            else
+
+                continue;
+
+            fi
+
+        done
+
+    done
+
+}
 
 # param $1: task_in_robot_queue
 function task_product_build(){
@@ -479,6 +530,8 @@ function task_product_build(){
                     # step:5 load project config
                     init_project_config_in_product_build_task $product;
 
+                    # step:6
+                    build_project;
 
                 done
 
