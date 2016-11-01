@@ -406,6 +406,18 @@ function init_project_config_in_product_build_task(){
 
              fi
 
+        elif [ $i -eq 3 ]
+        then
+
+            # build extend parameter
+            if [ -n $project_config ]
+            then
+
+                GLOBAL_CURRENT_PROJECT_BUILD_EXTEND_PARAM=$project_config;
+
+            fi
+
+
         fi
 
              i=$[$i+1];
@@ -420,10 +432,123 @@ function init_project_config_in_product_build_task(){
         robot_logger_i "project name: $GLOBAL_CURRENT_PROJECT_NAME , support build type: $build_type";
 
     done
+
+    robot_logger_i "build extend parameter: $GLOBAL_CURRENT_PROJECT_BUILD_EXTEND_PARAM";
+}
+
+# param: $1: dir
+function create_current_project_output_dir(){
+
+    dir=$1;
+
+    if [ -n "$dir" ]
+    then
+
+        GLOBAL_CURRENT_TIME=$(date +%Y-%m-%d-%H-%M-%S);
+        robot_logger_i "current time: $GLOBAL_CURRENT_TIME";
+
+        GLOBAL_CURRENT_PROJECT_OUTPUT_DIR=${dir}/${GLOBAL_CURRENT_TIME};
+        if [ ! -d "$GLOBAL_CURRENT_PROJECT_OUTPUT_DIR" ]
+        then
+
+            eval "mkdir -p $GLOBAL_CURRENT_PROJECT_OUTPUT_DIR";
+
+            GLOBAL_CURRENT_PROJECT_LOG=${GLOBAL_CURRENT_PROJECT_OUTPUT_DIR}/${GLOBAL_CURRENT_TIME}.log;
+            if [ ! -f "$GLOBAL_CURRENT_PROJECT_LOG" ]
+            then
+
+                eval "touch $GLOBAL_CURRENT_PROJECT_LOG";
+
+            fi
+
+        fi
+
+    fi
+
+}
+
+# parameter $1: build
+function create_build_command(){
+
+    build=$1;
+
+    build_command="${GRADLE_BUILD_COMMAND_GRADLE} ${GRADLE_BUILD_COMMAND_GRADLE_PARAM_CLEAN} ${build} ${GRADLE_BUILD_COMMAND_GRADLE_EXTEND_PARAM_DAEMON} ${GRADLE_BUILD_COMMAND_GRADLE_EXTEND_PARAM_THREADS}";
+
+    if [ -n "$GLOBAL_CURRENT_PROJECT_BUILD_EXTEND_PARAM" ]
+    then
+
+        build_command+=" $GLOBAL_CURRENT_PROJECT_BUILD_EXTEND_PARAM";
+
+    fi
+
+    output_log=" &>${GLOBAL_CURRENT_PROJECT_LOG}";
+    build_command+=$output_log;
+
+    echo $build_command;
+
+} 
+
+# param $1: build
+function build_android_gradle_normal(){
+
+    build=$1;
+
+    if [ -n "$build" ]
+    then
+
+        robot_logger_i "build:normal build: $build";
+        create_current_project_output_dir $GLOBAL_CURRENT_PROJECT_RELEASE_DAILY_BUILD_DIR;
+
+        GLOBAL_CURRENT_PROJECT_BUILD_COMMAND=$(create_build_command $build);
+        robot_logger_i "build command: $GLOBAL_CURRENT_PROJECT_BUILD_COMMAND";
+        eval "$GLOBAL_CURRENT_PROJECT_BUILD_COMMAND";
+
+    fi
+
+}
+
+# param $1: build
+function build_android_gradle_flavors(){
+
+    build=$1;
+
+    if [ -n "$build" ]
+    then
+
+        robot_logger_i "build:flavors build: $build";
+        create_current_project_output_dir $GLOBAL_CURRENT_PROJECT_RELEASE_PACEAGE_DIR;
+
+        GLOBAL_CURRENT_PROJECT_BUILD_COMMAND=$(create_build_command $build);
+        robot_logger_i "build command: $GLOBAL_CURRENT_PROJECT_BUILD_COMMAND";
+        eval "$GLOBAL_CURRENT_PROJECT_BUILD_COMMAND";
+
+    fi
+
+}
+
+# param $1: build
+function build_android_gradle_check(){
+
+    build=$1;
+
+    if [ -n "$build" ]
+    then
+
+        robot_logger_i "build:check build: $build";
+        create_current_project_output_dir $GLOBAL_CURRENT_PROJECT_RELEASE_QA_DIR;
+
+        GLOBAL_CURRENT_PROJECT_BUILD_COMMAND=$(create_build_command $build);
+        robot_logger_i "build command: $GLOBAL_CURRENT_PROJECT_BUILD_COMMAND";
+        eval "$GLOBAL_CURRENT_PROJECT_BUILD_COMMAND";
+
+    fi
+
 }
 
 function build_project(){
 
+    build_count=${#GLOBAL_CURRENT_BUILD[@]};
+    robot_logger_i "build_count: $build_count";
 
     for (( i=0;i<${#GLOBAL_CURRENT_BUILD_TYPE[@]};i++ ))
     do
@@ -433,27 +558,71 @@ function build_project(){
 
             if [ "${GLOBAL_CURRENT_BUILD_TYPE[$i]}" = "${GLOBAL_CURRENT_PROJECT_BUILD_TYPE[$j]}" ]
             then
-                ="android:gradle:flavors";
-                ="android:gradle:normal";
-                ="android:gradle:check";
 
                 if [  "${GLOBAL_CURRENT_BUILD_TYPE[$i]}" = "$GLOBAL_SUPPORT_PROJECT_ANDROID_GRADLE_NORMAL" ]
                 then
 
                     # android:gradle:normal
                     robot_logger_i "android:gradle:normal";
+                    for build in ${GLOBAL_CURRENT_BUILD[@]}
+                    do
+
+                        robot_logger_i "build: $build";
+                        build_android_gradle_normal $build;
+
+                    done
+
 
                 elif [ "${GLOBAL_CURRENT_BUILD_TYPE[$i]}" = "$GLOBAL_SUPPORT_PROJECT_ANDROID_GRADLE_FLAVORS" ]
                 then
 
                     # android:gradle:flavors
                     robot_logger_i "android:gradle:flavors";
+                    for build in ${GLOBAL_CURRENT_BUILD[@]}
+                    do
+
+                        # The current task is to identify the key word is assemble, otherwise directly skip
+                        identify_key="assemble";
+                        if [[  "$build" =~ "$identify_key" ]]
+                        then
+
+                            robot_logger_i "build: $build";
+                            build_android_gradle_flavors $build;
+
+                        else
+
+                            robot_logger_e "The current task is to identify the key word is assemble, otherwise directly skip";
+                            continue;
+
+                        fi
+
+
+                    done
 
                 elif [ "${GLOBAL_CURRENT_BUILD_TYPE[$i]}" = "$GLOBAL_SUPPORT_PROJECT_ANDROID_GRADLE_CHECK" ]
                 then
 
                     # android:gradle:check
                     robot_logger_i "android:gradle:check";
+                    for build in ${GLOBAL_CURRENT_BUILD[@]}
+                    do
+
+                        # The current task is to identify the key word is check, otherwise directly skip
+                        identify_key="check";
+                        if [[  "$build" =~ "$identify_key" ]]
+                        then
+
+                            robot_logger_i "build: $build";
+                            build_android_gradle_check $build;
+
+                        else
+
+                            robot_logger_e "The current task is to identify the key word is check, otherwise directly skip";
+                            continue;
+
+                        fi
+
+                    done
 
                 else
 
@@ -529,6 +698,9 @@ function task_product_build(){
 
                     # step:5 load project config
                     init_project_config_in_product_build_task $product;
+
+                    eval "cd $GLOBAL_CURRENT_PROJECT_CODE_DIR";
+                    robot_logger_i "current dir: $(pwd)";
 
                     # step:6
                     build_project;
@@ -659,7 +831,7 @@ function robot_main(){
     task_in_robot_queue=$GLOBAL_OPTION_NO;
     clean_env=$GLOBAL_OPTION_DISABLE;
     # Parse command line arguments
-    args=`getopt -o htp:b:c:: --long help,task-queue,clean,product:,build:,c-long:: -- "$@"`
+    args=`getopt -o htp:b:c:: --long help,task-queue,clean,product:,build-type:,build:,c-long:: -- "$@"`
     eval set -- "$args";
 
     while true ; do
@@ -677,10 +849,15 @@ function robot_main(){
             -p|--product)
                 GLOBAL_CURRENT_PRODUCTS=$2;
                 shift 2 ;;
-            -b|--build)
+            --build-type)
                 GLOBAL_CURRENT_BUILD_TYPE=$2;
                 shift 2 ;;
-
+            -b|--build)
+                OLD_IFS="$IFS";
+                IFS=",";
+                GLOBAL_CURRENT_BUILD=($2);
+                IFS="$OLD_IFS";
+                shift 2 ;;
             --) shift ; break ;;
             *) robot_logger_i "internal error!" ; exit 1 ;;
         esac

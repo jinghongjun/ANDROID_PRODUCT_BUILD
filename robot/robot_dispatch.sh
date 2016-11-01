@@ -14,6 +14,14 @@ setp 5: robot config
 EOF
 
 # step 1: init env
+# init env
+if [ -f "/etc/profile" ];then
+    source /etc/profile
+fi
+if [ -f "~/.bashrc" ];then
+    source ~/.bashrc
+fi
+export JAVA_HOME=/usr/lib/jvm/java-8-oracle/
 export PATH=$PATH:$JAVA_HOME/bin
 export JAVA_OPTS='-Xms512m -Xmx4096m -XX:MaxPermSize=128m -XX:-UseGCOverheadLimit -XX:+UseConcMarkSweepGC'
 export GRADLE_OPTS='-Xmx1024m -Xms256m -XX:MaxPermSize=512m -XX:+CMSClassUnloadingEnabled -XX:+HeapDumpOnOutOfMemoryError'
