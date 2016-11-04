@@ -490,7 +490,7 @@ function create_build_command(){
 
 function send_build_mail(){
 
-    if [ "$GLOBAL_MAIL_STATUS"= "$GLOBAL_OPTION_OPEN" ]
+    if [ "$GLOBAL_MAIL_STATUS" = "$GLOBAL_OPTION_OPEN" ]
     then
 
         send_email="mutt -s '$GLOBAL_CURRENT_MAIL_TITLE' nothingoneday@163.com -c hongjun.jing@gmail.com < $GLOBAL_CURRENT_MAIL_CONTENT";
