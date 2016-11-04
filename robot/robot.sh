@@ -486,7 +486,100 @@ function create_build_command(){
 
     echo $build_command;
 
-} 
+}
+
+function send_build_mail(){
+
+    if [ "$GLOBAL_MAIL_STATUS"= "$GLOBAL_OPTION_OPEN" ]
+    then
+
+        send_email="mutt -s '$GLOBAL_CURRENT_MAIL_TITLE' nothingoneday@163.com -c hongjun.jing@gmail.com < $GLOBAL_CURRENT_MAIL_CONTENT";
+
+        robot_logger_i "send mail: $send_email";
+
+        eval "$send_email";
+
+    fi
+
+}
+
+# param $1:
+function analysis_build_log(){
+
+    if [ -f "$GLOBAL_CURRENT_PROJECT_LOG" ]
+    then
+
+        BUILD_RESULT="grep -rnw -A 5 '$GRADLE_BUILD_RESULT_SUCCESS' $GLOBAL_CURRENT_PROJECT_LOG";
+
+        eval $BUILD_RESULT;
+        if [ $? -eq 0 ]
+        then
+
+            GRADLE_CURRENT_BUILD_RESULT=$GLOBAL_OPTION_SUCCESS;
+
+            # apk dir
+            GLOBAL_CURRENT_PROJECT_APK_OUTPUT_DIR="${GLOBAL_CURRENT_PROJECT_OUTPUT_DIR}/${GLOBAL_PROJECT_APK_DIR}";
+            if [ ! -d "$GLOBAL_CURRENT_PROJECT_APK_OUTPUT_DIR" ]
+            then
+
+                eval "mkdir -p $GLOBAL_CURRENT_PROJECT_APK_OUTPUT_DIR";
+
+            fi
+            robot_logger_i "apk dir: $GLOBAL_CURRENT_PROJECT_APK_OUTPUT_DIR";
+
+            # copy all apk to apk dir;
+            for apk in `find ./ -name *.apk`
+            do
+
+                if [ -f "$apk" ]
+                then
+
+                    eval "cp $apk $GLOBAL_CURRENT_PROJECT_APK_OUTPUT_DIR";
+
+                fi
+
+            done
+
+            # write apk dir to mail content
+            APK_DIR="tree $GLOBAL_CURRENT_PROJECT_APK_OUTPUT_DIR -Dst >>$GLOBAL_CURRENT_MAIL_CONTENT";
+            eval $APK_DIR;
+            if [ $? -eq 0 ]
+            then
+
+                echo $GLOBAL_APK_DIR_TITLE >>$GLOBAL_CURRENT_MAIL_CONTENT;
+                echo $APK_DIR >>$GLOBAL_CURRENT_MAIL_CONTENT;
+
+            fi
+
+
+            # email success title
+            GLOBAL_CURRENT_MAIL_TITLE="${GLOBAL_CURRENT_PROJECT_NAME} ${GLOBAL_OPTION_SUCCESS}";
+
+
+        else
+
+            GRADLE_CURRENT_BUILD_RESULT=$GLOBAL_OPTION_FAILURE;
+
+            # email failure title
+            GLOBAL_CURRENT_MAIL_TITLE="${GLOBAL_CURRENT_PROJECT_NAME} ${GLOBAL_OPTION_FAILURE}";
+
+            BUILD_RESULT="grep -rnw -A 40 '$GRADLE_BUILD_FEATURE_FEATURE' $GLOBAL_CURRENT_PROJECT_LOG";
+            eval $BUILD_RESULT;
+            if [ $? -eq 0 ]
+            then
+
+                # excption
+                echo $GLOBAL_EXCETIPN_TITLE >>$GLOBAL_CURRENT_MAIL_CONTENT;
+                eval "$BUILD_RESULT >>$GLOBAL_CURRENT_MAIL_CONTENT";
+
+            fi
+
+        fi
+
+    fi
+
+
+}
 
 # param $1: build
 function build_android_gradle_normal(){
@@ -502,6 +595,37 @@ function build_android_gradle_normal(){
         GLOBAL_CURRENT_PROJECT_BUILD_COMMAND=$(create_build_command $build);
         robot_logger_i "build command: $GLOBAL_CURRENT_PROJECT_BUILD_COMMAND";
         eval "$GLOBAL_CURRENT_PROJECT_BUILD_COMMAND";
+
+        # create mail dir
+        GRADLE_EMAIL_DIR="${GLOBAL_CURRENT_PROJECT_OUTPUT_DIR}/${GRADLE_EMAIL_DIR_NAME}";
+        robot_logger_i "mail dir: $GRADLE_EMAIL_DIR";
+
+        if [ -d "$GRADLE_EMAIL_DIR" ]
+        then
+
+            eval "rm -rf $GRADLE_EMAIL_DIR";
+
+        else
+
+            eval "mkdir -p $GRADLE_EMAIL_DIR";
+            GRADLE_ANDROID_NORMAL_EMAIL_FILE="${GRADLE_EMAIL_DIR}/${GRADLE_ANDROID_NORMAL_EMAIL_FILE_NAME}";
+            robot_logger_i "mail file name: $GRADLE_ANDROID_NORMAL_EMAIL_FILE";
+
+            GLOBAL_CURRENT_MAIL_CONTENT=$GRADLE_ANDROID_NORMAL_EMAIL_FILE;
+            robot_logger_i "current mail file:  $GLOBAL_CURRENT_MAIL_CONTENT";
+
+            if [ ! -f "$GRADLE_ANDROID_NORMAL_EMAIL_FILE" ]
+            then
+
+                eval "touch $GRADLE_ANDROID_NORMAL_EMAIL_FILE";
+
+            fi
+
+        fi
+
+        analysis_build_log;
+        send_build_mail;
+
 
     fi
 
@@ -522,6 +646,36 @@ function build_android_gradle_flavors(){
         robot_logger_i "build command: $GLOBAL_CURRENT_PROJECT_BUILD_COMMAND";
         eval "$GLOBAL_CURRENT_PROJECT_BUILD_COMMAND";
 
+        # create mail dir
+        GRADLE_EMAIL_DIR="${GLOBAL_CURRENT_PROJECT_OUTPUT_DIR}/${GRADLE_EMAIL_DIR_NAME}";
+        robot_logger_i "mail dir: $GRADLE_EMAIL_DIR";
+
+        if [ -d "$GRADLE_EMAIL_DIR" ]
+        then
+
+            eval "rm -rf $GRADLE_EMAIL_DIR";
+
+        else
+
+            eval "mkdir -p $GRADLE_EMAIL_DIR";
+            GRADLE_ANDROID_FLAVORS_EMAIL_FILE="${GRADLE_EMAIL_DIR}/${GRADLE_ANDROID_FLAVORS_EMAIL_FILE_NAME}";
+            robot_logger_i "mail file name: $GRADLE_ANDROID_FLAVORS_EMAIL_FILE";
+
+            GLOBAL_CURRENT_MAIL_CONTENT=$GRADLE_ANDROID_FLAVORS_EMAIL_FILE;
+            robot_logger_i "current mail file:  $GLOBAL_CURRENT_MAIL_CONTENT";
+
+            if [ ! -f "$GRADLE_ANDROID_FLAVORS_EMAIL_FILE" ]
+            then
+
+                eval "touch $GRADLE_ANDROID_FLAVORS_EMAIL_FILE";
+
+            fi
+
+        fi
+
+        analysis_build_log;
+        send_build_mail;
+
     fi
 
 }
@@ -540,6 +694,37 @@ function build_android_gradle_check(){
         GLOBAL_CURRENT_PROJECT_BUILD_COMMAND=$(create_build_command $build);
         robot_logger_i "build command: $GLOBAL_CURRENT_PROJECT_BUILD_COMMAND";
         eval "$GLOBAL_CURRENT_PROJECT_BUILD_COMMAND";
+
+
+        # create mail dir
+        GRADLE_EMAIL_DIR="${GLOBAL_CURRENT_PROJECT_OUTPUT_DIR}/${GRADLE_EMAIL_DIR_NAME}";
+        robot_logger_i "mail dir: $GRADLE_EMAIL_DIR";
+
+        if [ -d "$GRADLE_EMAIL_DIR" ]
+        then
+
+            eval "rm -rf $GRADLE_EMAIL_DIR";
+
+        else
+
+            eval "mkdir -p $GRADLE_EMAIL_DIR";
+            GRADLE_ANDROID_CHECK_EMAIL_FILE="${GRADLE_EMAIL_DIR}/${GRADLE_ANDROID_CHECK_EMAIL_FILE_NAME}";
+            robot_logger_i "mail file name: $GRADLE_ANDROID_CHECK_EMAIL_FILE";
+
+            GLOBAL_CURRENT_MAIL_CONTENT=$GRADLE_ANDROID_CHECK_EMAIL_FILE;
+            robot_logger_i "current mail file:  $GLOBAL_CURRENT_MAIL_CONTENT";
+
+            if [ ! -f "$GRADLE_ANDROID_CHECK_EMAIL_FILE" ]
+            then
+
+                eval "touch $GRADLE_ANDROID_CHECK_EMAIL_FILE";
+
+            fi
+
+        fi
+
+        analysis_build_log;
+        send_build_mail;
 
     fi
 

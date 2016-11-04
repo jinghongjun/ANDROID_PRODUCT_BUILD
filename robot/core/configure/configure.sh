@@ -39,6 +39,9 @@ GLOBAL_OPTION_CLOSE="close";
 GLOBAL_OPTION_ENABLE="enable";
 GLOBAL_OPTION_DISABLE="disable";
 
+GLOBAL_OPTION_SUCCESS="success";
+GLOBAL_OPTION_FAILURE="failure";
+
 GLOBAL_OPTION_YES="yes";
 GLOBAL_OPTION_NO="no";
 
@@ -81,6 +84,7 @@ GLOBAL_PRODUCT_CONFIG="";
 GLOBAL_PRODUCT_DIR="product";
 GLOBAL_PROJECT_CODE_DIR="code";
 GLOBAL_PROJECT_RELEASE_DIR="release";
+GLOBAL_PROJECT_APK_DIR="apk";
 GLOBAL_PRODUCT_RELEASE_DAILY_BUILD_DIR="daily-build"
 GLOBAL_PRODUCT_RELEASE_PACEKAGE_DIR="package";
 GLOBAL_PRODUCT_RELEASE_QA_DIR="QA";
@@ -105,6 +109,7 @@ GLOBAL_CURRENT_PROJECT_RELEASE_PACEAGE_DIR="";
 GLOBAL_CURRENT_PROJECT_RELEASE_QA_DIR="";
 GLOBAL_CURRENT_PROJECT_BUILD_TYPE="";
 GLOBAL_CURRENT_PROJECT_OUTPUT_DIR="";
+GLOBAL_CURRENT_PROJECT_APK_OUTPUT_DIR="";
 GLOBAL_CURRENT_PROJECT_LOG="";
 GLOBAL_CURRENT_PROJECT_BUILD_EXTEND_PARAM="";
 GLOBAL_CURRENT_PROJECT_BUILD_COMMAND="";
@@ -117,6 +122,10 @@ GLOBAL_PROJECT_CONFIG="";
 GLOBAL_SUPPORT_PROJECT_ANDROID_GRADLE_FLAVORS="android:gradle:flavors";
 GLOBAL_SUPPORT_PROJECT_ANDROID_GRADLE_NORMAL="android:gradle:normal";
 GLOBAL_SUPPORT_PROJECT_ANDROID_GRADLE_CHECK="android:gradle:check";
+
+GLOBAL_ANDROID_STUDIO_CONFIG_NAME="android_studio_gradle_config.tar.gz";
+GLOBAL_ANDROID_STUDIO_CONFIG="${CURRENT_BASE_DIR}/robot/config/android/${GLOBAL_ANDROID_STUDIO_CONFIG_NAME}";
+
 
 GLOBAL_SUPPORT_ALL_BUILD_TYPE=($GLOBAL_SUPPORT_PROJECT_ANDROID_GRADLE_FLAVORS $GLOBAL_SUPPORT_PROJECT_ANDROID_GRADLE_NORMAL $GLOBAL_SUPPORT_PROJECT_ANDROID_GRADLE_CHECK);
 
@@ -134,7 +143,7 @@ GLOBAL_MAIN_ROBOT_SHELL_PATH=". robot/robot.sh";
 
 
 # gradle command
-GRADLE_BUILD_COMMAND_GRADLE="gradle";
+GRADLE_BUILD_COMMAND_GRADLE="./gradlew";
 
 GRADLE_BUILD_COMMAND_GRADLE_PARAM_CLEAN="clean";
 GRADLE_BUILD_COMMAND_GRADLE_PARAM_BUILD="build";
@@ -143,6 +152,38 @@ GRADLE_BUILD_COMMAND_GRADLE_EXTEND_PARAM_DAEMON="--daemon";
 GRADLE_BUILD_COMMAND_GRADLE_EXTEND_PARAM_THREADS="--parallel-threads=4";
 
 GRADLE_BUILD_COMMAND_GRADLE_EXTEND_PARAM_DISGNTURE_FILE_PATH="-DsigntureFilePath=";
+
+# android gradle build result
+GRADLE_BUILD_RESULT_SUCCESS="BUILD SUCCESSFUL";
+GRADLE_BUILD_RESULT_FAILURE="FAILURE: Build failed with an exception.";
+
+GRADLE_CURRENT_BUILD_RESULT=$GLOBAL_OPTION_FAILURE;
+
+# mail config
+GRADLE_EMAIL_DIR_NAME="email";
+GRADLE_EMAIL_DIR="";
+
+# android normal mail
+GRADLE_ANDROID_NORMAL_EMAIL_FILE_NAME="android_normal_mail";
+GRADLE_ANDROID_NORMAL_EMAIL_FILE="";
+
+# android flavors mail
+GRADLE_ANDROID_FLAVORS_EMAIL_FILE_NAME="android_flavors_mail";
+GRADLE_ANDROID_FLAVORS_EMAIL_FILE="";
+
+# android check mail
+GRADLE_ANDROID_CHECK_EMAIL_FILE_NAME="android_check_mail";
+GRADLE_ANDROID_CHECK_EMAIL_FILE="";
+
+GLOBAL_CURRENT_MAIL_TITLE="";
+GLOBAL_CURRENT_MAIL_CONTENT="";
+
+# exception title
+GLOBAL_EXCETIPN_TITLE="Build exception:";
+
+# apk title
+GLOBAL_APK_DIR_TITLE="build apk detail:";
+
 
 # function
 
@@ -280,6 +321,8 @@ function create_project_config(){
         if [ -n "$result" ]
         then
 
+            create_android_studio_gradle_config;
+
             project_config_value+=$GLOBAL_SUPPORT_PROJECT_ANDROID_GRADLE_NORMAL;
 
             # checkstyle, findbug, pmd
@@ -321,24 +364,16 @@ function create_project_config(){
 
 }
 
-# @param $1: project name
-#function get_project_config(){
+function create_android_studio_gradle_config(){
 
-    project_name=$1;
+    if [ -f "$GLOBAL_ANDROID_STUDIO_CONFIG" ]
+    then
 
-#    project_config="";
+        eval "tar -zxvf ${GLOBAL_ANDROID_STUDIO_CONFIG} -C ${GLOBAL_CURRENT_PROJECT_CODE_DIR}";
 
-#    if [ -n "$project_name" ]
-#    then
+    fi
 
-#        config=$(conversion_legitmate_variables_name $project_name);
-#        project_config=`eval echo '$'"$config"`;
-
-#    fi
-
- #    echo $project_config;
-
-#}
+}
 
 # @param $1: project_name
 # @param $2: project_url
@@ -391,6 +426,7 @@ function init_current_project_config(){
             # First, sync code
             robot_logger_i "sync code: $GLOBAL_CURRENT_PROJECT_CODE_URL";
             eval "git clone $GLOBAL_CURRENT_PROJECT_CODE_URL";
+
 
             # get project config
             robot_logger_i "$GLOBAL_CURRENT_PROJECT_NAME project config";
