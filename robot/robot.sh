@@ -537,23 +537,15 @@ function analysis_build_log(){
                     eval "cp $apk $GLOBAL_CURRENT_PROJECT_APK_OUTPUT_DIR";
 
                 fi
-
             done
 
             # write apk dir to mail content
+            echo $GLOBAL_APK_DIR_TITLE >>$GLOBAL_CURRENT_MAIL_CONTENT;
             APK_DIR="tree $GLOBAL_CURRENT_PROJECT_APK_OUTPUT_DIR -Dst >>$GLOBAL_CURRENT_MAIL_CONTENT";
             eval $APK_DIR;
-            if [ $? -eq 0 ]
-            then
-
-                echo $GLOBAL_APK_DIR_TITLE >>$GLOBAL_CURRENT_MAIL_CONTENT;
-                echo $APK_DIR >>$GLOBAL_CURRENT_MAIL_CONTENT;
-
-            fi
-
 
             # email success title
-            GLOBAL_CURRENT_MAIL_TITLE="${GLOBAL_CURRENT_PROJECT_NAME} ${GLOBAL_OPTION_SUCCESS}";
+            GLOBAL_CURRENT_MAIL_TITLE="${GLOBAL_CURRENT_PROJECT_NAME} build ${GLOBAL_OPTION_SUCCESS}";
 
 
         else
@@ -561,7 +553,7 @@ function analysis_build_log(){
             GRADLE_CURRENT_BUILD_RESULT=$GLOBAL_OPTION_FAILURE;
 
             # email failure title
-            GLOBAL_CURRENT_MAIL_TITLE="${GLOBAL_CURRENT_PROJECT_NAME} ${GLOBAL_OPTION_FAILURE}";
+            GLOBAL_CURRENT_MAIL_TITLE="${GLOBAL_CURRENT_PROJECT_NAME} build ${GLOBAL_OPTION_FAILURE}";
 
             BUILD_RESULT="grep -rnw -A 40 '$GRADLE_BUILD_FEATURE_FEATURE' $GLOBAL_CURRENT_PROJECT_LOG";
             eval $BUILD_RESULT;
